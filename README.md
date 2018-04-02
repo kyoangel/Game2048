@@ -28,3 +28,7 @@ You also can use image for the code smell
 
 ## Quest 2
 Please refactor and submit your repository
+
+Ref :   
+[1.搞笑談軟工](http://teddy-chen-tw.blogspot.tw/2014/04/1duplicated-code.html/)   
+[2.sourcemaking](https://sourcemaking.com/refactoring) 
