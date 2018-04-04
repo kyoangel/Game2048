@@ -55,23 +55,24 @@ namespace Game2048
 
         public void Run()
         {
-            ConsoleKeyInfo input;
+            PutNewValue();
             do
             {
-                PutNewValue();
                 Display();
                 if (CheckEndGame()) break;
-                input = GetUserInput();
+                var input = GetUserInput();
+                UpdateBoardByUserInput(input);
             }
-            while (IsInputDirectionKey(input)); // use CTRL-C to break out of loop
+            while (true); // use CTRL-C to break out of loop
 
             Console.WriteLine("Press any key to quit...");
             Console.Read();
         }
 
-        private bool IsInputDirectionKey(ConsoleKeyInfo input)
+        private void UpdateBoardByUserInput(ConsoleKeyInfo input)
         {
-            return _directionLookup.ContainsKey(input.Key) && Update(_directionLookup[input.Key]);
+            if (_directionLookup.ContainsKey(input.Key))
+                Update(_directionLookup[input.Key]);
         }
 
         private bool CheckEndGame()
@@ -191,12 +192,13 @@ namespace Game2048
             return hasUpdated;
         }
 
-        private bool Update(Direction dir)
+        private void Update(Direction dir)
         {
-            ulong score;
-            bool isUpdated = Game.Update(this.Board, dir, out score);
+            if (Game.Update(this.Board, dir, out var score))
+            {
+                PutNewValue();
+            }
             this.Score += score;
-            return isUpdated;
         }
 
         private bool IsDead()
@@ -280,8 +282,8 @@ namespace Game2048
         private static ulong GetRandomNewValue()
         {
             ulong value = _random.Next(0, 100) < 95
-                ? (ulong) 2
-                : (ulong) 4; // randomly pick 2 (with 95% chance) or 4 (rest of the chance)
+                ? (ulong)2
+                : (ulong)4; // randomly pick 2 (with 95% chance) or 4 (rest of the chance)
             return value;
         }
 
