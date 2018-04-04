@@ -101,113 +101,83 @@ namespace Game2048
             return _consoleColors.ContainsKey(num) ? _consoleColors[num] : ConsoleColor.Red;
         }
 
-        private static bool Update(ulong[,] board, Direction direction, out ulong score)
+        /// <summary>
+        /// Updates the specified board.
+        /// You shouldn't be dead at this point. We always check if you're dead at the end of the Update()
+        ///
+        /// </summary>
+        /// <param name="board">The board.</param>
+        /// <param name="direction">The direction.</param>
+        /// <returns></returns>
+        private static bool Update(ulong[,] board, Direction direction)
         {
             int nRows = board.GetLength(0);
             int nCols = board.GetLength(1);
 
-            score = 0;
-            bool hasUpdated = false;
+            var isIncreasing = IsIncreasing(direction);
+            var isAlongRow = IsAlongRow(direction);
+            int firstAxisLength = isAlongRow ? nRows : nCols;
+            int secondAxisLength = isAlongRow ? nCols : nRows;
+            BoardHandler.SecondAxisStart = isIncreasing ? 0 : secondAxisLength - 1;
+            BoardHandler.SecondAxisEnd = isIncreasing ? secondAxisLength - 1 : 0;
 
-            // You shouldn't be dead at this point. We always check if you're dead at the end of the Update()
-
-            // Drop along row or column? true: process inner along row; false: process inner along column
-            bool isAlongRow = direction == Direction.Left || direction == Direction.Right;
-
-            // Should we process inner dimension in increasing index order?
-            bool isIncreasing = direction == Direction.Left || direction == Direction.Up;
-
-            int outterCount = isAlongRow ? nRows : nCols;
-            int innerCount = isAlongRow ? nCols : nRows;
-            int innerStart = isIncreasing ? 0 : innerCount - 1;
-            int innerEnd = isIncreasing ? innerCount - 1 : 0;
-
-            Func<int, int> drop = isIncreasing
+            BoardHandler.Board = board;
+            BoardHandler.Drop = isIncreasing
                 ? new Func<int, int>(innerIndex => innerIndex - 1)
                 : new Func<int, int>(innerIndex => innerIndex + 1);
-
-            Func<int, int> reverseDrop = isIncreasing
+            BoardHandler.ReverseDrop = isIncreasing
                 ? new Func<int, int>(innerIndex => innerIndex + 1)
                 : new Func<int, int>(innerIndex => innerIndex - 1);
-
-            Func<ulong[,], int, int, ulong> getValue = isAlongRow
+            BoardHandler.GetValue = isAlongRow
                 ? new Func<ulong[,], int, int, ulong>((x, i, j) => x[i, j])
                 : new Func<ulong[,], int, int, ulong>((x, i, j) => x[j, i]);
-
-            Action<ulong[,], int, int, ulong> setValue = isAlongRow
+            BoardHandler.SetValue = isAlongRow
                 ? new Action<ulong[,], int, int, ulong>((x, i, j, v) => x[i, j] = v)
                 : new Action<ulong[,], int, int, ulong>((x, i, j, v) => x[j, i] = v);
 
-            Func<int, bool> innerCondition = index => Math.Min(innerStart, innerEnd) <= index && index <= Math.Max(innerStart, innerEnd);
-
-            for (int i = 0; i < outterCount; i++)
-            {
-                for (int j = innerStart; innerCondition(j); j = reverseDrop(j))
-                {
-                    if (getValue(board, i, j) == 0)
-                    {
-                        continue;
-                    }
-
-                    int newJ = j;
-                    do
-                    {
-                        newJ = drop(newJ);
-                    }
-                    // Continue probing along as long as we haven't hit the boundary and the new position isn't occupied
-                    while (innerCondition(newJ) && getValue(board, i, newJ) == 0);
-
-                    if (innerCondition(newJ) && getValue(board, i, newJ) == getValue(board, i, j))
-                    {
-                        // We did not hit the canvas boundary (we hit a node) AND no previous merge occurred AND the nodes' values are the same
-                        // Let's merge
-                        ulong newValue = getValue(board, i, newJ) * 2;
-                        setValue(board, i, newJ, newValue);
-                        setValue(board, i, j, 0);
-
-                        hasUpdated = true;
-                        score += newValue;
-                    }
-                    else
-                    {
-                        // Reached the boundary OR...
-                        // we hit a node with different value OR...
-                        // we hit a node with same value BUT a prevous merge had occurred
-                        //
-                        // Simply stack along
-                        newJ = reverseDrop(newJ); // reverse back to its valid position
-                        if (newJ != j)
-                        {
-                            // there's an update
-                            hasUpdated = true;
-                        }
-
-                        ulong value = getValue(board, i, j);
-                        setValue(board, i, j, 0);
-                        setValue(board, i, newJ, value);
-                    }
-                }
-            }
-
+            var hasUpdated = BoardHandler.Handle(firstAxisLength);
             return hasUpdated;
+        }
+
+        /// <summary>
+        /// Determines should we process inner dimension in increasing index order?
+        /// </summary>
+        /// <param name="direction">The direction.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified direction is increasing; otherwise, <c>false</c>.
+        /// </returns>
+        private static bool IsIncreasing(Direction direction)
+        {
+            return direction == Direction.Left || direction == Direction.Up;
+        }
+
+        /// <summary>
+        /// Determines drop along row or column.
+        /// </summary>
+        /// <param name="direction">The direction.</param>
+        /// <returns>
+        ///   <c>true</c> if process inner along row; process inner along column, <c>false</c>.
+        /// </returns>
+        private static bool IsAlongRow(Direction direction)
+        {
+            return direction == Direction.Left || direction == Direction.Right;
         }
 
         private void Update(Direction dir)
         {
-            if (Game.Update(this.Board, dir, out var score))
+            if (Game.Update(this.Board, dir))
             {
                 PutNewValue();
             }
-            this.Score += score;
+            this.Score += BoardHandler.Score;
         }
 
         private bool IsDead()
         {
-            ulong score;
             foreach (Direction dir in new Direction[] { Direction.Down, Direction.Up, Direction.Left, Direction.Right })
             {
                 ulong[,] clone = (ulong[,])Board.Clone();
-                if (Game.Update(clone, dir, out score))
+                if (Game.Update(clone, dir))
                 {
                     return false;
                 }
