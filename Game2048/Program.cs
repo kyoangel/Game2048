@@ -23,6 +23,29 @@ namespace Game2048
         private readonly int nRows;
         private readonly int nCols;
         private readonly Random random = new Random();
+         
+        private static Dictionary<ulong, ConsoleColor> _consoleColors = new Dictionary<ulong, ConsoleColor>()
+        {
+            { 0, ConsoleColor.DarkGray},
+            { 2, ConsoleColor.Cyan},
+            { 4, ConsoleColor.Magenta},
+            { 8, ConsoleColor.Red},
+            { 16, ConsoleColor.Green},
+            { 32, ConsoleColor.Yellow},
+            { 64, ConsoleColor.Yellow},
+            { 128, ConsoleColor.DarkCyan},
+            { 256, ConsoleColor.Cyan},
+            { 512, ConsoleColor.DarkMagenta},
+            { 1024, ConsoleColor.Magenta},
+        };
+
+        private Dictionary<ConsoleKey, Direction> _directionLookup = new Dictionary<ConsoleKey, Direction>()
+        {
+            {ConsoleKey.UpArrow, Direction.Up },
+            {ConsoleKey.DownArrow, Direction.Down },
+            {ConsoleKey.LeftArrow, Direction.Left },
+            {ConsoleKey.RightArrow, Direction.Right },
+        };
 
         public Game()
         {
@@ -57,28 +80,7 @@ namespace Game2048
                 ConsoleKeyInfo input = Console.ReadKey(true); // BLOCKING TO WAIT FOR INPUT
                 Console.WriteLine(input.Key.ToString());
 
-                switch (input.Key)
-                {
-                    case ConsoleKey.UpArrow:
-                        hasUpdated = Update(Direction.Up);
-                        break;
-
-                    case ConsoleKey.DownArrow:
-                        hasUpdated = Update(Direction.Down);
-                        break;
-
-                    case ConsoleKey.LeftArrow:
-                        hasUpdated = Update(Direction.Left);
-                        break;
-
-                    case ConsoleKey.RightArrow:
-                        hasUpdated = Update(Direction.Right);
-                        break;
-
-                    default:
-                        hasUpdated = false;
-                        break;
-                }
+                hasUpdated = _directionLookup.ContainsKey(input.Key) && Update(_directionLookup[input.Key]);
             }
             while (true); // use CTRL-C to break out of loop
 
@@ -88,44 +90,7 @@ namespace Game2048
 
         private static ConsoleColor GetNumberColor(ulong num)
         {
-            switch (num)
-            {
-                case 0:
-                    return ConsoleColor.DarkGray;
-
-                case 2:
-                    return ConsoleColor.Cyan;
-
-                case 4:
-                    return ConsoleColor.Magenta;
-
-                case 8:
-                    return ConsoleColor.Red;
-
-                case 16:
-                    return ConsoleColor.Green;
-
-                case 32:
-                    return ConsoleColor.Yellow;
-
-                case 64:
-                    return ConsoleColor.Yellow;
-
-                case 128:
-                    return ConsoleColor.DarkCyan;
-
-                case 256:
-                    return ConsoleColor.Cyan;
-
-                case 512:
-                    return ConsoleColor.DarkMagenta;
-
-                case 1024:
-                    return ConsoleColor.Magenta;
-
-                default:
-                    return ConsoleColor.Red;
-            }
+            return _consoleColors.ContainsKey(num) ? _consoleColors[num] : ConsoleColor.Red;
         }
 
         private static bool Update(ulong[,] board, Direction direction, out ulong score)
