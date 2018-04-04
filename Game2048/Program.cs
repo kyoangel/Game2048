@@ -43,6 +43,8 @@ namespace Game2048
             {ConsoleKey.RightArrow, Direction.Right },
         };
 
+        private static Random _random = new Random();
+
         public Game()
         {
             this.Board = new ulong[4, 4];
@@ -226,7 +228,17 @@ namespace Game2048
 
         private void PutNewValue()
         {
-            // Find all empty slots
+            var emptySlots = FindAllEmptySlots();
+            SetNewValueToBoard(emptySlots, GetRandomSlot(emptySlots));
+        }
+
+        private void SetNewValueToBoard(List<Tuple<int, int>> emptySlots, int slot)
+        {
+            Board[emptySlots[slot].Item1, emptySlots[slot].Item2] = GetRandomNewValue();
+        }
+
+        private List<Tuple<int, int>> FindAllEmptySlots()
+        {
             List<Tuple<int, int>> emptySlots = new List<Tuple<int, int>>();
             for (int iRow = 0; iRow < nRows; iRow++)
             {
@@ -239,11 +251,20 @@ namespace Game2048
                 }
             }
 
-            // We should have at least 1 empty slot. Since we know the user is not dead
-            var random = new Random();
-            int iSlot = random.Next(0, emptySlots.Count); // randomly pick an empty slot
-            ulong value = random.Next(0, 100) < 95 ? (ulong)2 : (ulong)4; // randomly pick 2 (with 95% chance) or 4 (rest of the chance)
-            Board[emptySlots[iSlot].Item1, emptySlots[iSlot].Item2] = value;
+            return emptySlots;
+        }
+
+        private static int GetRandomSlot(List<Tuple<int, int>> emptySlots)
+        {
+            return _random.Next(0, emptySlots.Count);
+        }
+
+        private static ulong GetRandomNewValue()
+        {
+            ulong value = _random.Next(0, 100) < 95
+                ? (ulong) 2
+                : (ulong) 4; // randomly pick 2 (with 95% chance) or 4 (rest of the chance)
+            return value;
         }
 
         #region Utility Classes
