@@ -19,7 +19,6 @@ namespace Game2048
 
         private readonly int nRows;
         private readonly int nCols;
-        private readonly Random random = new Random();
 
         private static Dictionary<ulong, ConsoleColor> _consoleColors = new Dictionary<ulong, ConsoleColor>()
         {
@@ -241,6 +240,7 @@ namespace Game2048
             }
 
             // We should have at least 1 empty slot. Since we know the user is not dead
+            var random = new Random();
             int iSlot = random.Next(0, emptySlots.Count); // randomly pick an empty slot
             ulong value = random.Next(0, 100) < 95 ? (ulong)2 : (ulong)4; // randomly pick 2 (with 95% chance) or 4 (rest of the chance)
             Board[emptySlots[iSlot].Item1, emptySlots[iSlot].Item2] = value;
