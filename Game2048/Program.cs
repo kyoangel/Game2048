@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Game2048
 {
@@ -23,7 +20,7 @@ namespace Game2048
         private readonly int nRows;
         private readonly int nCols;
         private readonly Random random = new Random();
-         
+
         private static Dictionary<ulong, ConsoleColor> _consoleColors = new Dictionary<ulong, ConsoleColor>()
         {
             { 0, ConsoleColor.DarkGray},
@@ -69,11 +66,10 @@ namespace Game2048
 
                 if (IsDead())
                 {
-                    using (new ColorOutput(ConsoleColor.Red))
-                    {
-                        Console.WriteLine("YOU ARE DEAD!!!");
-                        break;
-                    }
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("YOU ARE DEAD!!!");
+                    Console.ResetColor();
+                    break;
                 }
 
                 Console.WriteLine("Use arrow keys to move the tiles. Press Ctrl-C to exit.");
@@ -216,10 +212,9 @@ namespace Game2048
             {
                 for (int j = 0; j < nCols; j++)
                 {
-                    using (new ColorOutput(Game.GetNumberColor(Board[i, j])))
-                    {
-                        Console.Write(string.Format("{0,6}", Board[i, j]));
-                    }
+                    Console.ForegroundColor = GetNumberColor(Board[i, j]);
+                    Console.Write($"{Board[i, j],6}");
+                    Console.ResetColor();
                 }
 
                 Console.WriteLine();
@@ -259,20 +254,6 @@ namespace Game2048
             Down,
             Right,
             Left,
-        }
-
-        private class ColorOutput : IDisposable
-        {
-            public ColorOutput(ConsoleColor fg, ConsoleColor bg = ConsoleColor.Black)
-            {
-                Console.ForegroundColor = fg;
-                Console.BackgroundColor = bg;
-            }
-
-            public void Dispose()
-            {
-                Console.ResetColor();
-            }
         }
 
         #endregion Utility Classes
