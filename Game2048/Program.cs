@@ -58,24 +58,13 @@ namespace Game2048
             bool hasUpdated = true;
             do
             {
-                if (hasUpdated)
-                {
-                    PutNewValue();
-                }
+                if (hasUpdated) PutNewValue();
 
                 Display();
 
-                if (IsDead())
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("YOU ARE DEAD!!!");
-                    Console.ResetColor();
-                    break;
-                }
+                if (CheckEndGame()) break;
 
-                Console.WriteLine("Use arrow keys to move the tiles. Press Ctrl-C to exit.");
-                ConsoleKeyInfo input = Console.ReadKey(true); // BLOCKING TO WAIT FOR INPUT
-                Console.WriteLine(input.Key.ToString());
+                var input = GetUserInput();
 
                 hasUpdated = _directionLookup.ContainsKey(input.Key) && Update(_directionLookup[input.Key]);
             }
@@ -83,6 +72,27 @@ namespace Game2048
 
             Console.WriteLine("Press any key to quit...");
             Console.Read();
+        }
+
+        private bool CheckEndGame()
+        {
+            if (IsDead())
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("YOU ARE DEAD!!!");
+                Console.ResetColor();
+                return true;
+            }
+
+            return false;
+        }
+
+        private static ConsoleKeyInfo GetUserInput()
+        {
+            Console.WriteLine("Use arrow keys to move the tiles. Press Ctrl-C to exit.");
+            ConsoleKeyInfo input = Console.ReadKey(true); // BLOCKING TO WAIT FOR INPUT
+            Console.WriteLine(input.Key.ToString());
+            return input;
         }
 
         private static ConsoleColor GetNumberColor(ulong num)
