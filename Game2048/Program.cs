@@ -55,23 +55,23 @@ namespace Game2048
 
         public void Run()
         {
-            bool hasUpdated = true;
+            ConsoleKeyInfo input;
             do
             {
-                if (hasUpdated) PutNewValue();
-
+                PutNewValue();
                 Display();
-
                 if (CheckEndGame()) break;
-
-                var input = GetUserInput();
-
-                hasUpdated = _directionLookup.ContainsKey(input.Key) && Update(_directionLookup[input.Key]);
+                input = GetUserInput();
             }
-            while (true); // use CTRL-C to break out of loop
+            while (IsInputDirectionKey(input)); // use CTRL-C to break out of loop
 
             Console.WriteLine("Press any key to quit...");
             Console.Read();
+        }
+
+        private bool IsInputDirectionKey(ConsoleKeyInfo input)
+        {
+            return _directionLookup.ContainsKey(input.Key) && Update(_directionLookup[input.Key]);
         }
 
         private bool CheckEndGame()
@@ -218,6 +218,18 @@ namespace Game2048
         {
             Console.Clear();
             Console.WriteLine();
+            DrawBoard();
+            DrawScore();
+            Console.WriteLine();
+        }
+
+        private void DrawScore()
+        {
+            Console.WriteLine("Score: {0}", this.Score);
+        }
+
+        private void DrawBoard()
+        {
             for (int i = 0; i < nRows; i++)
             {
                 for (int j = 0; j < nCols; j++)
@@ -230,9 +242,6 @@ namespace Game2048
                 Console.WriteLine();
                 Console.WriteLine();
             }
-
-            Console.WriteLine("Score: {0}", this.Score);
-            Console.WriteLine();
         }
 
         private void PutNewValue()
