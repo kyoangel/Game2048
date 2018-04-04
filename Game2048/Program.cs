@@ -201,7 +201,6 @@ namespace Game2048
                 }
             }
 
-            // tried all directions. none worked.
             return true;
         }
 
