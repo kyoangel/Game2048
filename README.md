@@ -1,4 +1,4 @@
-# Greed Island Exercise No 7
+# Refactor Exercise No 7
 
 ## Quest 1
 
