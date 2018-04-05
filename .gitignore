@@ -113,7 +113,6 @@ _TeamCity*
 # DotCover is a Code Coverage Tool
 *.dotCover
 
-
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
@@ -151,7 +150,6 @@ publish/
 *.azurePubxml
 # TODO: Comment the next line if you want to checkin your web deploy settings
 # but database connection strings (with potential passwords) will be unencrypted
-
 *.pubxml
 *.publishproj
 
@@ -168,7 +166,6 @@ PublishScripts/
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/packages/repositories.config
-
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
@@ -202,7 +199,6 @@ ClientBin/
 *.jfm
 *.pfx
 *.publishsettings
-node_modules/
 orleans.codegen.cs
 
 # Since there are multiple workflows, uncomment next line to ignore bower_components
