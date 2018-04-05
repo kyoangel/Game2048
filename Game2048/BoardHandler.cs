@@ -4,17 +4,29 @@ namespace Game2048
 {
     internal class BoardHandler
     {
-        internal static Func<int, int> ReverseDrop;
-        internal static Func<ulong[,], int, int, ulong> GetValue;
-        internal static Func<int, int> Drop;
-        internal static Action<ulong[,], int, int, ulong> SetValue;
-        internal static ulong[,] Board;
+        internal Func<int, int> ReverseDrop;
+        internal Func<ulong[,], int, int, ulong> GetValue;
+        internal Func<int, int> Drop;
+        internal Action<ulong[,], int, int, ulong> SetValue;
+        private ulong[,] _board;
         internal static ulong Score;
-        private static bool _hasUpdated = false;
-        public static int SecondAxisStart;
-        public static int SecondAxisEnd;
+        private bool _hasUpdated = false;
+        private int _secondAxisStart;
+        private int _secondAxisEnd;
+        private int _firstAxisLength;
 
-        internal static bool Handle(int outerCount)
+        public BoardHandler(ulong[,] board, bool isAlongRow, bool isIncreasing)
+        {
+            _board = board;
+            var nRows = board.GetLength(0);
+            var nCols = board.GetLength(1);
+            _firstAxisLength = isAlongRow ? nRows : nCols;
+            int secondAxisLength = isAlongRow ? nCols : nRows;
+            _secondAxisStart = isIncreasing ? 0 : secondAxisLength - 1;
+            _secondAxisEnd = isIncreasing ? secondAxisLength - 1 : 0;
+        }
+
+        internal bool Handle()
         {
             if (DelegatesNotReady())
             {
@@ -23,18 +35,18 @@ namespace Game2048
 
             Score = 0;
             _hasUpdated = false;
-            TraverseBoard(outerCount);
+            TraverseBoard();
 
             return _hasUpdated;
         }
 
-        private static void TraverseBoard(int outerCount)
+        private void TraverseBoard()
         {
-            for (int i = 0; i < outerCount; i++)
+            for (int i = 0; i < _firstAxisLength; i++)
             {
-                for (int j = SecondAxisStart; InnerCondition(j); j = ReverseDrop(j))
+                for (int j = _secondAxisStart; InnerCondition(j); j = ReverseDrop(j))
                 {
-                    if (GetValue(Board, i, j) == 0)
+                    if (GetValue(_board, i, j) == 0)
                     {
                         continue;
                     }
@@ -50,13 +62,13 @@ namespace Game2048
             }
         }
 
-        private static bool InnerCondition(int index)
+        private bool InnerCondition(int index)
         {
-            return Math.Min(SecondAxisStart, SecondAxisEnd) <= index
-                     && index <= Math.Max(SecondAxisStart, SecondAxisEnd);
+            return Math.Min(_secondAxisStart, _secondAxisEnd) <= index
+                     && index <= Math.Max(_secondAxisStart, _secondAxisEnd);
         }
 
-        private static void HandlwValues(int i, int j, int newJ)
+        private void HandlwValues(int i, int j, int newJ)
         {
             if (IsCouldMerge(i, j, newJ))
                 MergeValues(i, j, newJ);
@@ -64,15 +76,15 @@ namespace Game2048
                 UndoValues(i, j, newJ);
         }
 
-        private static bool DelegatesNotReady()
+        private bool DelegatesNotReady()
         {
             return ReverseDrop == null || GetValue == null || Drop == null ||
                    SetValue == null;
         }
 
-        private static bool IsStillProbing(int i, int newJ)
+        private bool IsStillProbing(int i, int newJ)
         {
-            return InnerCondition(newJ) && GetValue(Board, i, newJ) == 0;
+            return InnerCondition(newJ) && GetValue(_board, i, newJ) == 0;
         }
 
         /// <summary>
@@ -84,7 +96,7 @@ namespace Game2048
         /// <param name="i">The i.</param>
         /// <param name="j">The j.</param>
         /// <param name="newJ">The new j.</param>
-        private static void UndoValues(int i, int j, int newJ)
+        private void UndoValues(int i, int j, int newJ)
         {
             newJ = ReverseDrop(newJ);
             if (newJ != j)
@@ -92,21 +104,21 @@ namespace Game2048
                 _hasUpdated = true;
             }
 
-            ulong value = GetValue(Board, i, j);
-            SetValue(Board, i, j, 0);
-            SetValue(Board, i, newJ, value);
+            ulong value = GetValue(_board, i, j);
+            SetValue(_board, i, j, 0);
+            SetValue(_board, i, newJ, value);
         }
 
-        private static bool IsCouldMerge(int i, int j, int newJ)
+        private bool IsCouldMerge(int i, int j, int newJ)
         {
-            return InnerCondition(newJ) && GetValue(Board, i, newJ) == GetValue(Board, i, j);
+            return InnerCondition(newJ) && GetValue(_board, i, newJ) == GetValue(_board, i, j);
         }
 
-        private static void MergeValues(int i, int j, int newJ)
+        private void MergeValues(int i, int j, int newJ)
         {
-            ulong newValue = GetValue(Board, i, newJ) * 2;
-            SetValue(Board, i, newJ, newValue);
-            SetValue(Board, i, j, 0);
+            ulong newValue = GetValue(_board, i, newJ) * 2;
+            SetValue(_board, i, newJ, newValue);
+            SetValue(_board, i, j, 0);
 
             _hasUpdated = true;
             Score += newValue;

@@ -111,32 +111,28 @@ namespace Game2048
         /// <returns></returns>
         private static bool Update(ulong[,] board, Direction direction)
         {
-            int nRows = board.GetLength(0);
-            int nCols = board.GetLength(1);
+            var boardHandler = CreateBoardHandler(board, IsAlongRow(direction), IsIncreasing(direction));
+            return boardHandler.Handle();
+        }
 
-            var isIncreasing = IsIncreasing(direction);
-            var isAlongRow = IsAlongRow(direction);
-            int firstAxisLength = isAlongRow ? nRows : nCols;
-            int secondAxisLength = isAlongRow ? nCols : nRows;
-            BoardHandler.SecondAxisStart = isIncreasing ? 0 : secondAxisLength - 1;
-            BoardHandler.SecondAxisEnd = isIncreasing ? secondAxisLength - 1 : 0;
-
-            BoardHandler.Board = board;
-            BoardHandler.Drop = isIncreasing
-                ? new Func<int, int>(innerIndex => innerIndex - 1)
-                : new Func<int, int>(innerIndex => innerIndex + 1);
-            BoardHandler.ReverseDrop = isIncreasing
-                ? new Func<int, int>(innerIndex => innerIndex + 1)
-                : new Func<int, int>(innerIndex => innerIndex - 1);
-            BoardHandler.GetValue = isAlongRow
-                ? new Func<ulong[,], int, int, ulong>((x, i, j) => x[i, j])
-                : new Func<ulong[,], int, int, ulong>((x, i, j) => x[j, i]);
-            BoardHandler.SetValue = isAlongRow
-                ? new Action<ulong[,], int, int, ulong>((x, i, j, v) => x[i, j] = v)
-                : new Action<ulong[,], int, int, ulong>((x, i, j, v) => x[j, i] = v);
-
-            var hasUpdated = BoardHandler.Handle(firstAxisLength);
-            return hasUpdated;
+        private static BoardHandler CreateBoardHandler(ulong[,] board, bool isAlongRow, bool isIncreasing)
+        {
+            var boardHandler = new BoardHandler(board, isAlongRow, isIncreasing)
+            {
+                Drop = isIncreasing
+                    ? new Func<int, int>(innerIndex => innerIndex - 1)
+                    : new Func<int, int>(innerIndex => innerIndex + 1),
+                ReverseDrop = isIncreasing
+                    ? new Func<int, int>(innerIndex => innerIndex + 1)
+                    : new Func<int, int>(innerIndex => innerIndex - 1),
+                GetValue = isAlongRow
+                    ? new Func<ulong[,], int, int, ulong>((x, i, j) => x[i, j])
+                    : new Func<ulong[,], int, int, ulong>((x, i, j) => x[j, i]),
+                SetValue = isAlongRow
+                    ? new Action<ulong[,], int, int, ulong>((x, i, j, v) => x[i, j] = v)
+                    : new Action<ulong[,], int, int, ulong>((x, i, j, v) => x[j, i] = v)
+            };
+            return boardHandler;
         }
 
         /// <summary>
